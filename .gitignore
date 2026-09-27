@@ -1,0 +1,11 @@
+# Originals and working files - not part of the published site.
+# The audio in /songs MUST be committed so everyone can hear it.
+_source/
+Bengali Song/
+image/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
