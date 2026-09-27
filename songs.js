@@ -44,4 +44,5 @@ var SONGS = [
   { title: "Tomar Pichu Charbo Na", artist: "Nahid Hasan", file: "songs/tomar-pichu-charbo-na.mp3", cover: "covers/tomar-pichu-charbo-na.jpg" },
   { title: "Chokhe Chokhe", artist: "Shaan & Shreya Ghoshal", file: "songs/Chokhe Chokhe.mp3", cover: "covers/chokhe-chokhe.jpg" },
   { title: "Tomar Chokher Kalo", artist: "Rupam Islam", file: "songs/Tomar Chokher Kalo.mp3", cover: "covers/tomar-chokher-kalo.jpg" },
+  { title: "Tomake Chai (Reprise)", artist: "", file: "songs/Tomake Chai (Reprise).mp3" },
 ];
