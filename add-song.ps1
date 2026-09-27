@@ -55,21 +55,28 @@ $dest = Join-Path $songsDir ($candidate + ".mp3")
 Copy-Item -LiteralPath $From -Destination $dest
 Write-Host "  + added  $dest"
 
-# --- 3. escape title/artist and append to songs.js ------------------------------
-function Esc([string]$s) {
-  $s = $s -replace '\\', '\\\\'
-  $s = $s -replace '"', '\"'
-  return $s
+# --- 3. rebuild the playlist (adds the entry, artist + cover art) ---------------
+$node = Get-Command node -ErrorAction SilentlyContinue
+if ($node) {
+  Write-Host "  + syncing playlist (artist + cover art from iTunes)..."
+  & node (Join-Path $root "tools\sync-playlist.mjs")
+  if ($LASTEXITCODE -ne 0) { throw "sync-playlist.mjs failed - playlist not updated" }
+} else {
+  # Fallback: append a bare entry by hand if Node isn't installed.
+  function Esc([string]$s) {
+    $s = $s -replace '\\', '\\\\'
+    $s = $s -replace '"', '\"'
+    return $s
+  }
+  $fileRef = 'songs/' + $candidate + '.mp3'
+  $line = '  { title: "' + (Esc $Title) + '", artist: "' + (Esc $Artist) + '", file: "' + $fileRef + '" },'
+  $content = Get-Content -LiteralPath $songsJs -Raw
+  $pattern = '(?ms)(\];\s*$)'
+  if ($content -notmatch $pattern) { throw "Could not find the closing ]; of SONGS in songs.js" }
+  $content = $content -replace $pattern, ($line + "`r`n" + '$1')
+  Set-Content -LiteralPath $songsJs -Value $content -NoNewline -Encoding UTF8
+  Write-Host "  + updated songs.js (no Node found, so no cover art): $Title -> $fileRef"
 }
-$fileRef = 'songs/' + $candidate + '.mp3'
-$line = '  { title: "' + (Esc $Title) + '", artist: "' + (Esc $Artist) + '", file: "' + $fileRef + '" },'
-
-$content = Get-Content -LiteralPath $songsJs -Raw
-$pattern = '(?ms)(\];\s*$)'
-if ($content -notmatch $pattern) { throw "Could not find the closing ]; of SONGS in songs.js" }
-$content = $content -replace $pattern, ($line + "`r`n" + '$1')
-Set-Content -LiteralPath $songsJs -Value $content -NoNewline -Encoding UTF8
-Write-Host "  + updated songs.js: $Title - $Artist  ->  $fileRef"
 
 # --- 4. commit -----------------------------------------------------------------
 Push-Location $root

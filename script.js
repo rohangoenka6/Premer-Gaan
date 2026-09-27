@@ -14,6 +14,7 @@ var els = {
   songArtist: document.getElementById("songArtist"),
   songNote: document.getElementById("songNote"),
   songCover: document.getElementById("songCover"),
+  pcDisc: document.getElementById("pcDisc"),
   playBtn: document.getElementById("playBtn"),
   playIco: document.getElementById("playIco"),
   pauseIco: document.getElementById("pauseIco"),
@@ -66,9 +67,17 @@ function sourceCandidates(i) {
   return srcCache[i];
 }
 
+// `hidden` is an HTMLElement property - SVGElement doesn't have it, so
+// assigning el.hidden on an <svg> silently does nothing. Set the attribute.
+function setHidden(el, hidden) {
+  if (!el) return;
+  if (hidden) el.setAttribute("hidden", "");
+  else el.removeAttribute("hidden");
+}
+
 function setPlayBtn(playing) {
-  if (els.playIco) els.playIco.hidden = playing;
-  if (els.pauseIco) els.pauseIco.hidden = !playing;
+  setHidden(els.playIco, playing);
+  setHidden(els.pauseIco, !playing);
 }
 
 function setTitle(title, artist) {
@@ -177,6 +186,7 @@ els.fwd10Btn.addEventListener("click", function () {
 els.audio.addEventListener("play", function () {
   isPlaying = true;
   setPlayBtn(true);
+  setSpin(true);
   els.songNote.textContent = "Premer Gaan, premiyer gan \uD83C\uDFA7";
   highlightActiveListItem();
 });
@@ -184,6 +194,7 @@ els.audio.addEventListener("play", function () {
 els.audio.addEventListener("pause", function () {
   isPlaying = false;
   setPlayBtn(false);
+  setSpin(false);
 });
 
 els.audio.addEventListener("ended", function () {
@@ -212,6 +223,7 @@ els.audio.addEventListener("error", function () {
   );
   setPlayBtn(false);
   isPlaying = false;
+  setSpin(false);
 });
 
 function highlightActiveListItem() {
@@ -350,12 +362,20 @@ function pollProgress() {
 
 // Keep the play/pause icon in sync with the audio element's real state,
 // no matter what. This self-corrects even if an event is missed.
+var lastPlaying = null;
 function syncPlayBtnFromAudio() {
-  if (!els.audio || !els.playIco || !els.pauseIco) return;
+  if (!els.audio) return;
   var playing = !els.audio.paused && !els.audio.ended;
-  if (els.playIco.hidden === playing && els.pauseIco.hidden === !playing) return;
+  if (playing === lastPlaying) return;
+  lastPlaying = playing;
   isPlaying = playing;
   setPlayBtn(playing);
+  setSpin(playing);
+}
+
+// The record only turns while audio is actually playing.
+function setSpin(on) {
+  if (els.pcDisc) els.pcDisc.classList.toggle("spinning", !!on);
 }
 setInterval(function () {
   syncPlayBtnFromAudio();
